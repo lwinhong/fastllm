@@ -370,12 +370,18 @@ class model:
                                                        max_length, do_sample, top_p, top_k, temperature, repeat_penalty,
                                                        False, stop_token_len, stop_token_list);
         tokens = [];
+        stop_callback = kwargs.get("stop_callback", None)
         while True:
             cur = fastllm_lib.fetch_response_llm_model(self.model, handle);
             if (cur == -1):
                 break;
             tokens.append(cur);
             response = tokenizer.decode(tokens);
+            try:
+                if stop_callback is not None and stop_callback(tokens, response):
+                    break
+            except Exception as e:
+                print(e)
             new_history = history + [(query, response)];
             if (type == "ChatGLM3"):
                 new_history = history
